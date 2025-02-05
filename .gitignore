@@ -1,0 +1,62 @@
+# Dépendances
+/node_modules
+/.pnp
+.pnp.js
+/vendor
+
+# Production
+/build
+/dist
+/out
+
+# Environnement
+/BrowserUseEnv
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.log
+
+# IDE et éditeurs
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Fichiers de compilation
+*.com
+*.class
+*.dll
+*.exe
+*.o
+*.so
+
+# Paquets
+*.7z
+*.dmg
+*.gz
+*.iso
+*.jar
+*.rar
+*.tar
+*.zip
+
+# Base de données
+*.sqlite
+*.db
+
+# Cache et fichiers temporaires
+.cache/
+.temp/
+.tmp/
+coverage/
+*.tmp
+*.bak
