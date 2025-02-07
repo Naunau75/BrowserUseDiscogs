@@ -6,10 +6,10 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import asyncio
 from dotenv import load_dotenv
-from langchain_openai import ChatOpenAI
-from pydantic import BaseModel
+from langchain_google_genai import ChatGoogleGenerativeAI
+from pydantic import BaseModel, SecretStr
 
-from browser_use import Agent, Controller
+from browser_use import Agent, Controller, BrowserConfig, Browser
 
 load_dotenv()
 
@@ -23,68 +23,61 @@ class Disco(BaseModel):
     list_album: List[Album]
 
 
-controller = Controller(output_model=Disco)
-
-MAX_RETRIES = 3
-INITIAL_DELAY = 2  # secondes
-
-
-async def navigate_with_retry(
-    page, url, max_retries=MAX_RETRIES, initial_delay=INITIAL_DELAY
-):
-    for attempt in range(max_retries):
-        try:
-            print(f"Attempting to navigate to {url}, attempt {attempt + 1}")
-            await page.goto(url)
-            return  # Navigation successful
-        except Exception as e:
-            print(f"Navigation failed on attempt {attempt + 1}: {e}")
-            if "net::ERR_TOO_MANY_REDIRECTS" in str(e):  # handle redirect loops
-                raise e
-            if attempt == max_retries - 1:
-                raise  # Re-raise exception if max retries reached
-
-            delay = initial_delay * (2**attempt)  # Exponential backoff
-            print(f"Waiting {delay} seconds before retrying...")
-            await asyncio.sleep(delay)
-
-
 async def main():
+    # Configuration du navigateur
+    browser_config = BrowserConfig(
+        headless=True,
+        disable_security=True,
+        extra_chromium_args=[
+            "--disable-dev-shm-usage",
+            "--disable-gpu",
+            "--no-sandbox",
+            "--user-agent=BrowserUse-DiscogsCrawler/1.0",
+        ],
+    )
+
+    browser = Browser(config=browser_config)
+
     task = """Go to https://www.discogs.com/fr/ page and give me all albums from The Flower Kings band.
     Make sure to:
     1. Search for 'The Flower Kings'
     2. Go through at least the first 3 pages of results
     3. For each page, collect all albums information
     4. Use the pagination controls at the bottom of the page to navigate
-    5. Between each page navigation, wait for a random amount of time (between 3 and 7 seconds) to respect rate limits
+    5. Between each page navigation, wait for 5 seconds to respect rate limits
     6. Stop when you've processed 3 pages or when there are no more pages"""
 
-    model = ChatOpenAI(model="gpt-4o")
-    agent = Agent(
-        task=task,
-        llm=model,
-        controller=controller,
+    model = ChatGoogleGenerativeAI(
+        model="gemini-2.0-flash-exp", api_key=SecretStr(os.getenv("GEMINI_API_KEY"))
     )
 
-    history = await agent.run(max_steps=200)
+    controller = Controller(output_model=Disco)
 
-    result = history.final_result()
-    if result:
-        albums: Disco = Disco.model_validate_json(result)
+    agent = Agent(task=task, llm=model, controller=controller, browser=browser)
 
-        for album in albums.list_album:
-            print("\n--------------------------------")
-            print(f"Title:            {album.title}")
-            print(f"Year:             {album.year}")
+    try:
+        history = await agent.run()
+        result = history.final_result()
 
-        print(f"\nTotal albums found: {len(albums.list_album)}")
-    else:
-        print("No result")
+        if result:
+            albums = Disco.model_validate_json(result)
 
-    # Sauvegarder
-    with open("data.json", "w") as f:
-        f.write(albums.model_dump_json())
+            for album in albums.list_album:
+                print("\n--------------------------------")
+                print(f"Title:            {album.title}")
+                print(f"Year:             {album.year}")
+
+            print(f"\nTotal albums found: {len(albums.list_album)}")
+
+            with open("flower_kings_albums.json", "w", encoding="utf-8") as f:
+                f.write(albums.model_dump_json(indent=2))
+        else:
+            print("No results found")
+
+    except Exception as e:
+        print(f"An error occurred: {str(e)}")
 
 
 if __name__ == "__main__":
+    load_dotenv()
     asyncio.run(main())
