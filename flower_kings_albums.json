@@ -1,104 +1,24 @@
 {
-  "list_album": [
+  "title": "Fire and Ice",
+  "year": null,
+  "formats": [
     {
-      "title": "Back In The World Of Adventures",
-      "year": "1995"
+      "format": "CD",
+      "min_price": 3.5,
+      "max_price": 89.9,
+      "avg_price": 26.77
     },
     {
-      "title": "Retropolis",
-      "year": "1996"
+      "format": "Vinyl",
+      "min_price": 70.0,
+      "max_price": 75.0,
+      "avg_price": 72.5
     },
     {
-      "title": "Stardust We Are",
-      "year": "1997"
-    },
-    {
-      "title": "Édition Limitée Québec 1998",
-      "year": "1998"
-    },
-    {
-      "title": "Flower Power",
-      "year": "1999"
-    },
-    {
-      "title": "Space Revolver",
-      "year": "2000"
-    },
-    {
-      "title": "Alive On Planet Earth",
-      "year": "2000"
-    },
-    {
-      "title": "The Rainmaker",
-      "year": "2001"
-    },
-    {
-      "title": "Unfold The Future",
-      "year": "2002"
-    },
-    {
-      "title": "Live In New York (Official Bootleg)",
-      "year": "2002"
-    },
-    {
-      "title": "Meet The Flower Kings",
-      "year": "2003"
-    },
-    {
-      "title": "Adam & Eve",
-      "year": "2004"
-    },
-    {
-      "title": "BetchaWannaDanceStoopid!!",
-      "year": "2004"
-    },
-    {
-      "title": "Instant Delivery",
-      "year": "2006"
-    },
-    {
-      "title": "Paradox Hotel",
-      "year": "2006"
-    },
-    {
-      "title": "The Sum Of No Evil",
-      "year": "2007"
-    },
-    {
-      "title": "Carpe Diem (Official Bootleg)",
-      "year": "2008"
-    },
-    {
-      "title": "Tour Kaputt",
-      "year": "2011"
-    },
-    {
-      "title": "Banks Of Eden",
-      "year": "2012"
-    },
-    {
-      "title": "Desolation Rose",
-      "year": "2013"
-    },
-    {
-      "title": "Waiting For Miracles",
-      "year": "2019"
-    },
-    {
-      "title": "Islands",
-      "year": "2020"
-    },
-    {
-      "title": "By Royal Decree",
-      "year": "2022"
-    },
-    {
-      "title": "Look At You Now",
-      "year": "2023"
-    },
-    {
-      "title": "Live In Europe 2023",
-      "year": "2024"
+      "format": "Cassette",
+      "min_price": 4.0,
+      "max_price": 4.0,
+      "avg_price": 4.0
     }
   ]
 }

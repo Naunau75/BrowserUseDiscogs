@@ -6,7 +6,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import asyncio
 from dotenv import load_dotenv
-from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_openai import ChatOpenAI
 from pydantic import BaseModel, SecretStr
 
 from browser_use import Agent, Controller, BrowserConfig, Browser
@@ -14,13 +14,17 @@ from browser_use import Agent, Controller, BrowserConfig, Browser
 load_dotenv()
 
 
+class Format(BaseModel):
+    format: str
+    min_price: Optional[float] = None
+    max_price: Optional[float] = None
+    avg_price: Optional[float] = None
+
+
 class Album(BaseModel):
     title: str
     year: Optional[str] = None
-
-
-class Disco(BaseModel):
-    list_album: List[Album]
+    formats: List[Format]
 
 
 async def main():
@@ -38,20 +42,26 @@ async def main():
 
     browser = Browser(config=browser_config)
 
-    task = """Go to https://www.discogs.com/fr/ page and give me all albums from The Flower Kings band.
+    task = """Go to https://www.discogs.com/fr/ page and search for album Fire and Ice from Yngwie Malmsteen, formats and prices.
     Make sure to:
-    1. Search for 'The Flower Kings'
-    2. Go through at least the first 3 pages of results
-    3. For each page, collect all albums information
-    4. Use the pagination controls at the bottom of the page to navigate
-    5. Between each page navigation, wait for 5 seconds to respect rate limits
-    6. Stop when you've processed 3 pages or when there are no more pages"""
+    1. Search for the band Yngwie Malmsteen
+    2. Search for the album Fire and Ice
+    3. Click on the album link to access its details page
+    4. For each format:
+        a. Click on the 'Marketplace' tab or look for a section showing prices
+        b. Wait for the price information to load completely (at least 3 seconds)
+        c. Look for elements containing price information (usually prefixed with € or $)
+        d. If prices are found:
+            - Collect all visible prices
+            - Calculate minimum price
+            - Calculate maximum price 
+            - Calculate average (mean) price
+    5. Add a 3-second delay between each interaction to ensure content is loaded
+    6. If no prices are visible, try looking for a 'Show Marketplace' or similar button and click it"""
 
-    model = ChatGoogleGenerativeAI(
-        model="gemini-2.0-flash-exp", api_key=SecretStr(os.getenv("GEMINI_API_KEY"))
-    )
+    model = ChatOpenAI(model="gpt-4o", api_key=SecretStr(os.getenv("OPENAI_API_KEY")))
 
-    controller = Controller(output_model=Disco)
+    controller = Controller(output_model=Album)
 
     agent = Agent(task=task, llm=model, controller=controller, browser=browser)
 
@@ -60,17 +70,10 @@ async def main():
         result = history.final_result()
 
         if result:
-            albums = Disco.model_validate_json(result)
-
-            for album in albums.list_album:
-                print("\n--------------------------------")
-                print(f"Title:            {album.title}")
-                print(f"Year:             {album.year}")
-
-            print(f"\nTotal albums found: {len(albums.list_album)}")
+            album = Album.model_validate_json(result)
 
             with open("flower_kings_albums.json", "w", encoding="utf-8") as f:
-                f.write(albums.model_dump_json(indent=2))
+                f.write(album.model_dump_json(indent=2))
         else:
             print("No results found")
 
